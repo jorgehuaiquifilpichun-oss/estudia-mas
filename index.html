@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Estudia+</title>
+<style>
+  :root {
+    --fondo: #ffffff;
+    --texto: #131c3d;
+    --texto-suave: #5f6b85;
+    --azul: #3b82f0;
+    --azul-pastel: #e3efff;
+    --verde: #2a9d76;
+    --verde-pastel: #def6ee;
+    --lila: #7367cf;
+    --lila-pastel: #ece9fb;
+    --lila-azulado-pastel: #e9eefc;
+    --fuente: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--fondo);
+    color: var(--texto);
+    font-family: var(--fuente);
+    padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Formas de fondo */
+  .fondo { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+  .fondo span { position: absolute; display: block; }
+  .f1 { width: 220px; height: 200px; left: -70px; top: -50px; background: #dcebfb; border-radius: 40% 60% 70% 30% / 40% 40% 60% 60%; }
+  .f2 { width: 70px; height: 48px; left: 4%; top: 17%; background: #ebe8fa; border-radius: 50%; transform: rotate(-30deg); }
+  .f3 { width: 170px; height: 190px; right: -70px; top: 2%; background: #dff6f0; border-radius: 55% 45% 40% 60%; }
+  .f4 { width: 54px; height: 54px; right: 17%; top: 14%; background: #dff6f0; border-radius: 50%; }
+  .f5 { width: 120px; height: 90px; right: -40px; top: 19%; background: #dcebfb; border-radius: 60% 40% 50% 50%; }
+  .f6 { width: 220px; height: 150px; left: -60px; bottom: -40px; background: #dcebfb; border-radius: 60% 40% 0 0; }
+  .f7 { width: 260px; height: 130px; right: -60px; bottom: -40px; background: #e8e4fa; border-radius: 55% 45% 0 0; }
+
+  .pagina { position: relative; z-index: 1; max-width: 560px; margin: 0 auto; padding: 22px 16px 32px; }
+
+  /* Encabezado */
+  .marca { text-align: center; padding: 6px 0 22px; }
+  .marca svg { width: 78px; height: auto; display: block; margin: 0 auto 4px; }
+  .marca h1 { margin: 0; font-size: clamp(2.1rem, 9vw, 2.9rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; }
+  .marca h1 .mas { color: var(--azul); }
+  .marca p { margin: 8px 0 0; color: var(--texto-suave); font-size: clamp(.95rem, 3.6vw, 1.1rem); }
+
+  /* Accesos */
+  .accesos { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .acceso {
+    border-radius: 26px;
+    padding: 16px 12px 14px;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center;
+    box-shadow: 0 8px 22px rgba(90, 110, 170, .10);
+  }
+  .acceso.azul { background: var(--azul-pastel); }
+  .acceso.verde { background: var(--verde-pastel); }
+  .acceso.lila1 { background: var(--lila-azulado-pastel); }
+  .acceso.lila2 { background: var(--lila-pastel); }
+  .acceso svg.icono { width: min(100%, 118px); height: 100px; margin-bottom: 6px; }
+  .acceso h2 { margin: 0 0 6px; font-size: clamp(1rem, 4.2vw, 1.3rem); font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
+  .acceso p { margin: 0 0 14px; color: var(--texto-suave); font-size: clamp(.78rem, 3vw, .95rem); line-height: 1.35; flex: 1; }
+  .boton {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; min-height: 46px; padding: 0 10px;
+    border-radius: 16px; border: 0; color: #fff; text-decoration: none;
+    font: 700 clamp(.85rem, 3.4vw, 1rem)/1 var(--fuente);
+    transition: transform .15s ease, filter .15s ease;
+  }
+  .boton svg { width: 20px; height: 20px; flex: none; }
+  .boton:hover { filter: brightness(1.06); }
+  .boton:active { transform: scale(.97); }
+  .boton:focus-visible, .volver:focus-visible { outline: 3px solid var(--texto); outline-offset: 3px; }
+  .b-azul { background: var(--azul); }
+  .b-verde { background: var(--verde); }
+  .b-lila1 { background: #7a74d3; }
+  .b-lila2 { background: #7b5ec4; }
+
+  /* Pantallas provisionales */
+  .pantalla { display: none; }
+  .pantalla.activa { display: block; }
+  .provisional { padding-top: 6px; }
+  .volver {
+    display: inline-flex; align-items: center; gap: 6px; min-height: 44px;
+    padding: 0 14px 0 10px; border-radius: 14px; background: var(--azul-pastel);
+    color: var(--texto); font: 700 .95rem/1 var(--fuente); text-decoration: none;
+  }
+  .volver svg { width: 18px; height: 18px; }
+  .tarjeta-prov { margin-top: 18px; border-radius: 26px; padding: 28px 20px; text-align: center; box-shadow: 0 8px 22px rgba(90, 110, 170, .10); }
+  .tarjeta-prov svg { width: 110px; height: 96px; margin-bottom: 8px; }
+  .tarjeta-prov h2 { margin: 0 0 12px; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
+  .etiqueta { display: inline-block; padding: 6px 12px; border-radius: 999px; background: #fff; color: var(--texto); font-weight: 700; font-size: .85rem; }
+  .tarjeta-prov p { margin: 14px auto 0; max-width: 34ch; color: var(--texto-suave); line-height: 1.45; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .boton { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="fondo" aria-hidden="true">
+  <span class="f1"></span><span class="f2"></span><span class="f3"></span><span class="f4"></span>
+  <span class="f5"></span><span class="f6"></span><span class="f7"></span>
+</div>
+
+<!-- Íconos reutilizables -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-subir" viewBox="0 0 24 24"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.4-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z" fill="currentColor"/></symbol>
+    <symbol id="i-libro" viewBox="0 0 24 24"><path d="M2 5.2c3-1.3 6.5-1.2 9.2.6v14c-2.7-1.8-6.2-1.9-9.2-.6zM22 5.2c-3-1.3-6.5-1.2-9.2.6v14c2.7-1.8 6.2-1.9 9.2-.6z" fill="currentColor"/></symbol>
+    <symbol id="i-barras" viewBox="0 0 24 24"><rect x="3" y="13" width="5" height="8" rx="1.3" fill="currentColor"/><rect x="9.5" y="8" width="5" height="13" rx="1.3" fill="currentColor"/><rect x="16" y="3" width="5" height="18" rx="1.3" fill="currentColor"/></symbol>
+    <symbol id="i-atras" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<main class="pagina">
+
+  <!-- ============ PORTADA ============ -->
+  <section class="pantalla activa" id="inicio" aria-labelledby="t-inicio">
+    <header class="marca">
+      <svg viewBox="0 0 120 100" role="img" aria-label="Logotipo de Estudia+: birrete">
+        <path d="M60 6 6 30l54 24 54-24z" fill="#4a8ef5"/>
+        <path d="M28 46v22c0 8 15 16 32 16s32-8 32-16V46L60 60z" fill="#2f6fdd"/>
+        <path d="M60 60 28 46 60 33z" fill="#2f6fdd" opacity=".0"/>
+        <path d="M104 36v30" stroke="#4a8ef5" stroke-width="5" stroke-linecap="round"/>
+        <rect x="100" y="62" width="9" height="18" rx="4.5" fill="#4a8ef5"/>
+      </svg>
+      <h1 id="t-inicio">Estudia<span class="mas">+</span></h1>
+      <p>Tu guía de estudio inteligente</p>
+    </header>
+
+    <div class="accesos">
+
+      <!-- 1. Subir archivo -->
+      <article class="acceso azul">
+        <svg class="icono" viewBox="0 0 120 100" aria-hidden="true">
+          <path d="M18 8h56l22 22v50a6 6 0 0 1-6 6H18a6 6 0 0 1-6-6V14a6 6 0 0 1 6-6z" fill="#fff"/>
+          <path d="M74 8v16a6 6 0 0 0 6 6h16z" fill="#b9d3fb"/>
+          <rect x="24" y="26" width="34" height="5" rx="2.5" fill="#a9c8f8"/>
+          <rect x="24" y="40" width="34" height="5" rx="2.5" fill="#a9c8f8"/>
+          <rect x="24" y="54" width="28" height="5" rx="2.5" fill="#a9c8f8"/>
+          <rect x="24" y="68" width="20" height="5" rx="2.5" fill="#a9c8f8"/>
+          <circle cx="86" cy="72" r="23" fill="#3b82f0"/>
+          <path d="M86 83V62m0 0-9 9m9-9 9 9" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h2>Subir archivo</h2>
+        <p>Carga tu guía de estudio en PDF, Word o imagen y genera tu material.</p>
+        <a class="boton b-azul" href="#subir"><svg><use href="#i-subir"/></svg>Subir archivo</a>
+      </article>
+
+      <!-- 2. Comenzar a estudiar -->
+      <article class="acceso verde">
+        <svg class="icono" viewBox="0 0 120 100" aria-hidden="true">
+          <rect x="8" y="14" width="102" height="68" rx="8" fill="#6cc4a1"/>
+          <path d="M60 18c-9-7-24-8-38-5v62c14-3 29-2 38 5z" fill="#fff"/>
+          <path d="M60 18c9-7 24-8 38-5v62c-14-3-29-2-38 5z" fill="#f6fbf9"/>
+          <g stroke="#a8e0cb" stroke-width="5" stroke-linecap="round" fill="none">
+            <path d="M28 28c6-1 12 0 18 3M28 42c6-1 12 0 18 3M28 56c6-1 12 0 18 3"/>
+            <path d="M74 31c6-3 12-4 18-3M74 45c6-3 12-4 18-3M74 59c6-3 12-4 18-3"/>
+          </g>
+          <circle cx="94" cy="72" r="23" fill="#249a72"/>
+          <path d="M87 61v22l19-11z" fill="#fff" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>
+        </svg>
+        <h2>Comenzar a estudiar</h2>
+        <p>Accede a resúmenes, preguntas, ejercicios y material personalizado.</p>
+        <a class="boton b-verde" href="#estudiar"><svg><use href="#i-play"/></svg>Comenzar</a>
+      </article>
+
+      <!-- 3. Biblioteca de libros -->
+      <article class="acceso lila1">
+        <svg class="icono" viewBox="0 0 120 100" aria-hidden="true">
+          <path d="M16 70c0-8 4-12 12-12h74v22c0 6-4 10-10 10H30c-9 0-14-6-14-12z" fill="#7a6cd0"/>
+          <path d="M28 58h74v8H28z" fill="#f4f2ff"/>
+          <path d="M14 46c0-8 4-12 12-12h80v22H28c-8 0-14-4-14-10z" fill="#4fae8c"/>
+          <path d="M26 34h80v8H26z" fill="#f4f2ff" opacity=".0"/>
+          <path d="M26 48h78v8H26z" fill="#f4f2ff"/>
+          <path d="M26 20c0-8 6-12 14-12h60v22H40c-8 0-14-3-14-10z" fill="#4a8ef5"/>
+          <path d="M40 24h60v7H40z" fill="#f4f2ff"/>
+          <path d="M72 50h14v28l-7-6-7 6z" fill="#3b82f0"/>
+        </svg>
+        <h2>Biblioteca de libros</h2>
+        <p>Explora guías, libros y materiales de estudio.</p>
+        <a class="boton b-lila1" href="#biblioteca"><svg><use href="#i-libro"/></svg>Ver biblioteca</a>
+      </article>
+
+      <!-- 4. Mi progreso -->
+      <article class="acceso lila2">
+        <svg class="icono" viewBox="0 0 120 100" aria-hidden="true">
+          <rect x="14" y="58" width="22" height="30" rx="5" fill="#a893ec"/>
+          <rect x="45" y="44" width="22" height="44" rx="5" fill="#b9a6f1"/>
+          <rect x="76" y="26" width="24" height="62" rx="5" fill="#7b5ec4"/>
+          <path d="M12 46C40 44 70 34 94 12" fill="none" stroke="#7b5ec4" stroke-width="5" stroke-linecap="round"/>
+          <path d="M80 10h20v20" fill="none" stroke="#7b5ec4" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h2>Mi progreso</h2>
+        <p>Revisa tu historial, seguimiento y logros de estudio.</p>
+        <a class="boton b-lila2" href="#progreso"><svg><use href="#i-barras"/></svg>Ver progreso</a>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ============ PANTALLAS PROVISIONALES ============ -->
+  <section class="pantalla provisional" id="subir" aria-labelledby="t-subir">
+    <a class="volver" href="#inicio"><svg><use href="#i-atras"/></svg>Inicio</a>
+    <div class="tarjeta-prov" style="background:var(--azul-pastel)">
+      <svg viewBox="0 0 120 100" aria-hidden="true"><path d="M18 8h56l22 22v50a6 6 0 0 1-6 6H18a6 6 0 0 1-6-6V14a6 6 0 0 1 6-6z" fill="#fff"/><path d="M74 8v16a6 6 0 0 0 6 6h16z" fill="#b9d3fb"/><circle cx="86" cy="72" r="23" fill="#3b82f0"/><path d="M86 83V62m0 0-9 9m9-9 9 9" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h2 id="t-subir" tabindex="-1">Subir archivo</h2>
+      <span class="etiqueta">Pantalla provisional</span>
+      <p>Esta función todavía no está disponible. Se incorporará en una etapa posterior.</p>
+    </div>
+  </section>
+
+  <section class="pantalla provisional" id="estudiar" aria-labelledby="t-estudiar">
+    <a class="volver" href="#inicio"><svg><use href="#i-atras"/></svg>Inicio</a>
+    <div class="tarjeta-prov" style="background:var(--verde-pastel)">
+      <svg viewBox="0 0 120 100" aria-hidden="true"><rect x="8" y="14" width="102" height="68" rx="8" fill="#6cc4a1"/><path d="M60 18c-9-7-24-8-38-5v62c14-3 29-2 38 5z" fill="#fff"/><path d="M60 18c9-7 24-8 38-5v62c-14-3-29-2-38 5z" fill="#f6fbf9"/><circle cx="94" cy="72" r="23" fill="#249a72"/><path d="M87 61v22l19-11z" fill="#fff" stroke="#fff" stroke-width="3" stroke-linejoin="round"/></svg>
+      <h2 id="t-estudiar" tabindex="-1">Comenzar a estudiar</h2>
+      <span class="etiqueta">Pantalla provisional</span>
+      <p>Esta función todavía no está disponible. Se incorporará en una etapa posterior.</p>
+    </div>
+  </section>
+
+  <section class="pantalla provisional" id="biblioteca" aria-labelledby="t-biblioteca">
+    <a class="volver" href="#inicio"><svg><use href="#i-atras"/></svg>Inicio</a>
+    <div class="tarjeta-prov" style="background:var(--lila-azulado-pastel)">
+      <svg viewBox="0 0 120 100" aria-hidden="true"><path d="M16 70c0-8 4-12 12-12h74v22c0 6-4 10-10 10H30c-9 0-14-6-14-12z" fill="#7a6cd0"/><path d="M14 46c0-8 4-12 12-12h80v22H28c-8 0-14-4-14-10z" fill="#4fae8c"/><path d="M26 20c0-8 6-12 14-12h60v22H40c-8 0-14-3-14-10z" fill="#4a8ef5"/></svg>
+      <h2 id="t-biblioteca" tabindex="-1">Biblioteca de libros</h2>
+      <span class="etiqueta">Pantalla provisional</span>
+      <p>Esta función todavía no está disponible. Se incorporará en una etapa posterior.</p>
+    </div>
+  </section>
+
+  <section class="pantalla provisional" id="progreso" aria-labelledby="t-progreso">
+    <a class="volver" href="#inicio"><svg><use href="#i-atras"/></svg>Inicio</a>
+    <div class="tarjeta-prov" style="background:var(--lila-pastel)">
+      <svg viewBox="0 0 120 100" aria-hidden="true"><rect x="14" y="58" width="22" height="30" rx="5" fill="#a893ec"/><rect x="45" y="44" width="22" height="44" rx="5" fill="#b9a6f1"/><rect x="76" y="26" width="24" height="62" rx="5" fill="#7b5ec4"/></svg>
+      <h2 id="t-progreso" tabindex="-1">Mi progreso</h2>
+      <span class="etiqueta">Pantalla provisional</span>
+      <p>Esta función todavía no está disponible. Se incorporará en una etapa posterior.</p>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // Navegación entre secciones mediante #hash (compatible con GitHub Pages)
+  (function () {
+    var secciones = ['inicio', 'subir', 'estudiar', 'biblioteca', 'progreso'];
+    var titulos = {
+      inicio: 'Estudia+',
+      subir: 'Subir archivo · Estudia+',
+      estudiar: 'Comenzar a estudiar · Estudia+',
+      biblioteca: 'Biblioteca de libros · Estudia+',
+      progreso: 'Mi progreso · Estudia+'
+    };
+    var primera = true;
+
+    function mostrar() {
+      var id = location.hash.replace('#', '');
+      if (secciones.indexOf(id) === -1) id = 'inicio';
+      secciones.forEach(function (s) {
+        document.getElementById(s).classList.toggle('activa', s === id);
+      });
+      document.title = titulos[id];
+      window.scrollTo(0, 0);
+      if (!primera) {
+        var h = document.querySelector('#' + id + ' h1, #' + id + ' h2');
+        if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+      }
+      primera = false;
+    }
+
+    window.addEventListener('hashchange', mostrar);
+    mostrar();
+  })();
+</script>
+</body>
+</html>
