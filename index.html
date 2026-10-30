@@ -105,14 +105,17 @@
   html:has(#inicio.activa), body:has(#inicio.activa) {height:100%;overflow:hidden;overscroll-behavior:none}
   body:has(#inicio.activa) .pagina {height:100dvh;overflow:hidden;padding-top:max(8px,env(safe-area-inset-top,0px));padding-bottom:max(8px,env(safe-area-inset-bottom,0px))}
   #inicio.activa {height:100%;display:flex;flex-direction:column;min-height:0}
-  #inicio .marca {flex:0 0 auto;padding-bottom:clamp(4px,2vh,22px)}
-  #inicio .accesos {flex:1;min-height:0;grid-template-rows:repeat(2,minmax(0,1fr))}
+  #inicio .marca {flex:0 0 auto;padding:0 0 clamp(4px,1.4vh,14px)}
+  #inicio .marca svg{width:clamp(40px,8vh,64px);margin-bottom:2px}
+  #inicio .marca h1{font-size:clamp(1.7rem,7vw,2.3rem)}
+  #inicio .marca p{margin-top:4px;font-size:clamp(.8rem,3.2vw,.95rem)}
+  #inicio .accesos {flex:1;min-height:0;gap:10px;grid-template-rows:repeat(2,minmax(0,1fr))}
   #inicio .acceso {min-height:0;padding:clamp(5px,1.5vh,16px) 12px}
-  #inicio .acceso svg.icono {height:clamp(35px,10vh,100px);flex-shrink:1;min-height:0}
+  #inicio .acceso svg.icono {height:clamp(30px,8.5vh,84px);flex-shrink:1;min-height:0}
   #inicio .acceso p {margin-bottom:clamp(3px,1vh,14px)}
   #inicio .boton {min-height:clamp(34px,5.2vh,46px);flex-shrink:0}
   @media(max-height:680px){#inicio .marca svg{width:52px}#inicio .marca h1{font-size:1.9rem}#inicio .marca p{margin-top:3px;font-size:.85rem}#inicio .accesos{gap:8px}#inicio .acceso h2{font-size:.95rem}#inicio .acceso p{font-size:.72rem;line-height:1.2}}
-  .enlace-acceso{display:block;flex:0 0 auto;text-align:center;padding:8px 0 0;font-weight:700;color:var(--azul)}
+  #inicio .enlace-acceso{flex:0 0 auto;margin-top:clamp(6px,1.4vh,12px);min-height:clamp(38px,5.6vh,46px);background:#fff;color:var(--azul);border:2px solid var(--azul)}
   .acceso-formulario{max-width:420px;margin:18px auto 0;padding:26px 20px;background:var(--azul-pastel);border-radius:26px;box-shadow:0 8px 22px rgba(90,110,170,.10)}
   .acceso-formulario h2{margin:0 0 10px;font-size:1.6rem;text-align:center}
   .acceso-formulario p{color:var(--texto-suave);line-height:1.45;text-align:center}
@@ -230,7 +233,7 @@
       </article>
 
     </div>
-    <a class="enlace-acceso" href="#acceso">Iniciar sesión / Crear cuenta</a>
+    <a class="boton enlace-acceso" id="boton-acceso" href="#acceso">Iniciar sesión / Crear cuenta</a>
   </section>
 
   <!-- ============ PANTALLAS PROVISIONALES ============ -->
@@ -343,6 +346,7 @@
       cerrar.hidden = !correo;
       usuario.hidden = !correo;
       usuario.textContent = correo ? 'Sesión iniciada: ' + correo : '';
+      document.getElementById('boton-acceso').textContent = correo ? 'Mi cuenta' : 'Iniciar sesión / Crear cuenta';
       if (correo) aviso('Sesión iniciada correctamente.');
     }
     async function autenticar(registro) {
@@ -354,11 +358,11 @@
       var password = document.getElementById('clave-acceso').value;
       try {
         var resultado = registro
-          ? await cliente.auth.signUp({email:email,password:password,options:{emailRedirectTo:location.origin+location.pathname+'#acceso'}})
+          ? await cliente.auth.signUp({email:email,password:password,options:{emailRedirectTo:location.origin+location.pathname}})
           : await cliente.auth.signInWithPassword({email:email,password:password});
         if (resultado.error) throw resultado.error;
         if (registro && !resultado.data.session) aviso('Revisa tu correo para confirmar la cuenta antes de iniciar sesión.');
-        else estado(resultado.data.session);
+        else { estado(resultado.data.session); location.hash = '#inicio'; }
       } catch (error) {
         aviso(error.message || 'No se pudo completar la operación.');
       } finally {
