@@ -130,6 +130,39 @@
   }
   .acceso svg.icono, .tarjeta-prov svg { filter: drop-shadow(0 6px 8px rgba(80,100,180,.18)); }
   h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
+
+  /* ===== Menú de actividades y «Preguntas a la app» ===== */
+  .menu-act{margin-top:18px;border-radius:26px;padding:20px 14px;background:var(--verde-pastel);box-shadow:0 8px 22px rgba(90,110,170,.10)}
+  .menu-act h2{margin:0 0 4px;font-size:1.6rem;font-weight:800;letter-spacing:-0.02em;text-align:center}
+  .menu-act>p{margin:0 0 14px;text-align:center;color:var(--texto-suave)}
+  .menu-act ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+  .act{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:10px 14px;border-radius:16px;background:#fff;color:var(--texto);text-decoration:none;font:700 1rem/1.2 var(--fuente);border:0;text-align:left}
+  .act small{display:block;margin-top:2px;font-weight:500;font-size:.8rem;color:var(--texto-suave)}
+  .act .nom{flex:1;min-width:0}
+  .act svg{width:22px;height:22px;flex:none;color:var(--verde)}
+  a.act:hover{filter:brightness(.98)}
+  a.act:focus-visible{outline:3px solid var(--texto);outline-offset:3px}
+  .act.destacada{background:var(--verde);color:#fff}
+  .act.destacada small,.act.destacada svg{color:#fff}
+  .act[aria-disabled="true"]{opacity:.62}
+  .act .pronto{flex:none;font-size:.72rem;font-weight:700;padding:4px 8px;border-radius:999px;background:var(--verde-pastel);color:var(--texto)}
+  .act.destacada .pronto{background:#fff}
+  .preg{margin-top:18px;border-radius:26px;padding:20px 16px;background:var(--lila-azulado-pastel);box-shadow:0 8px 22px rgba(90,110,170,.10)}
+  .preg h2{margin:0 0 6px;font-size:1.6rem;font-weight:800;letter-spacing:-0.02em;text-align:center}
+  .preg>p{margin:0 0 14px;text-align:center;color:var(--texto-suave);line-height:1.4}
+  .preg label{display:block;margin:0 0 6px;font-weight:700}
+  .preg textarea{display:block;width:100%;min-height:96px;resize:vertical;border:1px solid #a9b9d6;border-radius:12px;padding:10px 12px;font:inherit;background:#fff;color:var(--texto)}
+  .preg .contador{margin:4px 2px 0;font-size:.8rem;color:var(--texto-suave);text-align:right}
+  .preg .boton{margin-top:12px;cursor:pointer}
+  .preg .boton:disabled{opacity:.6;cursor:not-allowed}
+  .preg .estado-preg{min-height:1.4em;margin:10px 0 0;font-size:.92rem;color:var(--texto-suave);text-align:center}
+  .preg .estado-preg.error{color:#a12b2b;font-weight:600}
+  .conversacion{margin-top:12px;display:grid;gap:12px}
+  .par{background:#fff;border-radius:16px;padding:12px 14px;overflow-wrap:anywhere;word-break:break-word}
+  .par .q{margin:0 0 8px;font-weight:700;white-space:pre-wrap}
+  .par .a{margin:0;line-height:1.5;white-space:pre-wrap}
+  .par .a.pensando{color:var(--texto-suave);font-style:italic}
+  textarea:focus-visible{outline:3px solid var(--texto);outline-offset:2px}
 </style>
 </head>
 <body>
@@ -146,6 +179,7 @@
     <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.4-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z" fill="currentColor"/></symbol>
     <symbol id="i-libro" viewBox="0 0 24 24"><path d="M2 5.2c3-1.3 6.5-1.2 9.2.6v14c-2.7-1.8-6.2-1.9-9.2-.6zM22 5.2c-3-1.3-6.5-1.2-9.2.6v14c2.7-1.8 6.2-1.9 9.2-.6z" fill="currentColor"/></symbol>
     <symbol id="i-barras" viewBox="0 0 24 24"><rect x="3" y="13" width="5" height="8" rx="1.3" fill="currentColor"/><rect x="9.5" y="8" width="5" height="13" rx="1.3" fill="currentColor"/><rect x="16" y="3" width="5" height="18" rx="1.3" fill="currentColor"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.2 3.6A.6.6 0 0 1 4.8 19V16A2.5 2.5 0 0 1 4 14z" fill="currentColor"/></symbol>
     <symbol id="i-atras" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   
     <linearGradient id="g-azul" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8ec0ff"/><stop offset="1" stop-color="#3f86ee"/></linearGradient>
@@ -261,11 +295,35 @@
 
   <section class="pantalla provisional" id="estudiar" aria-labelledby="t-estudiar">
     <a class="volver" href="#inicio"><svg><use href="#i-atras"/></svg>Inicio</a>
-    <div class="tarjeta-prov" style="background:var(--verde-pastel)">
-      <svg viewBox="0 0 320 230" aria-hidden="true"><use href="#ic-estudiar"/></svg>
+    <div class="menu-act">
       <h2 id="t-estudiar" tabindex="-1">Comenzar a estudiar</h2>
-      <span class="etiqueta">Pantalla provisional</span>
-      <p>Esta función todavía no está disponible. Se incorporará en una etapa posterior.</p>
+      <p>Elige una actividad.</p>
+      <ul>
+        <li><span class="act destacada" aria-disabled="true"><span class="nom">Estudio rápido</span><span class="pronto">Próximamente</span></span></li>
+        <li><span class="act" aria-disabled="true"><span class="nom">Resúmenes</span><span class="pronto">Próximamente</span></span></li>
+        <li><span class="act" aria-disabled="true"><span class="nom">Preguntas</span><span class="pronto">Próximamente</span></span></li>
+        <li><span class="act" aria-disabled="true"><span class="nom">Cuestionarios</span><span class="pronto">Próximamente</span></span></li>
+        <li><span class="act" aria-disabled="true"><span class="nom">Tarjetas de memoria</span><span class="pronto">Próximamente</span></span></li>
+        <li><span class="act" aria-disabled="true"><span class="nom">Evaluaciones</span><span class="pronto">Próximamente</span></span></li>
+        <li><span class="act" aria-disabled="true"><span class="nom">Trípticos</span><span class="pronto">Próximamente</span></span></li>
+        <li><a class="act" href="#preguntas-app"><svg aria-hidden="true"><use href="#i-chat"/></svg><span class="nom">Preguntas a la app<small>Haz preguntas y resuelve tus dudas de estudio.</small></span></a></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="pantalla provisional" id="preguntas-app" aria-labelledby="t-preguntas-app">
+    <a class="volver" href="#estudiar"><svg><use href="#i-atras"/></svg>Actividades</a>
+    <div class="preg">
+      <h2 id="t-preguntas-app" tabindex="-1">Preguntas a la app</h2>
+      <p>Haz preguntas y resuelve tus dudas de estudio.</p>
+      <form id="form-preguntas" novalidate>
+        <label for="texto-pregunta">Tu pregunta</label>
+        <textarea id="texto-pregunta" rows="3" maxlength="4000" placeholder="Escribe aquí tu pregunta"></textarea>
+        <div class="contador" id="contador-pregunta" aria-hidden="true">0 / 4000</div>
+        <button class="boton b-lila2" type="submit" id="enviar-pregunta"><svg><use href="#i-chat"/></svg><span id="texto-enviar">Enviar pregunta</span></button>
+      </form>
+      <p class="estado-preg" id="estado-pregunta" role="status" aria-live="polite"></p>
+      <div class="conversacion" id="conversacion" aria-live="polite"></div>
     </div>
   </section>
 
@@ -313,11 +371,12 @@
 <script>
   // Navegación entre secciones mediante #hash (compatible con GitHub Pages)
   (function () {
-    var secciones = ['inicio', 'subir', 'estudiar', 'biblioteca', 'progreso', 'acceso'];
+    var secciones = ['inicio', 'subir', 'estudiar', 'preguntas-app', 'biblioteca', 'progreso', 'acceso'];
     var titulos = {
       inicio: 'Estudia+',
       subir: 'Subir archivo · Estudia+',
       estudiar: 'Comenzar a estudiar · Estudia+',
+      'preguntas-app': 'Preguntas a la app · Estudia+',
       biblioteca: 'Biblioteca de libros · Estudia+',
       progreso: 'Mi progreso · Estudia+',
       acceso: 'Acceso · Estudia+'
@@ -394,6 +453,85 @@
       cliente.auth.getSession().then(function(r){if (!r.error) estado(r.data.session)});
       cliente.auth.onAuthStateChange(function(_evento,sesion){estado(sesion)});
     } else aviso('No se pudo cargar Supabase. Comprueba tu conexión a Internet.');
+
+    // ===== Preguntas a la app (Edge Function "gemini-chat") =====
+    var MAX_PREGUNTA = 4000; // Mismo límite que valida la función gemini-chat (pregunta.length > 4000 → 400).
+    var pForm = document.getElementById('form-preguntas');
+    var pTexto = document.getElementById('texto-pregunta');
+    var pEnviar = document.getElementById('enviar-pregunta');
+    var pEtiqueta = document.getElementById('texto-enviar');
+    var pEstado = document.getElementById('estado-pregunta');
+    var pConv = document.getElementById('conversacion');
+    var pContador = document.getElementById('contador-pregunta');
+    var pOcupado = false;
+    var pSolicitud = 0; // identifica la solicitud vigente; al salir de la pantalla se invalida
+    function pActiva() { return document.getElementById('preguntas-app').classList.contains('activa'); }
+    function pMensaje(t, esError) { pEstado.textContent = t; pEstado.className = 'estado-preg' + (esError ? ' error' : ''); }
+    function pBloquear(b) { pOcupado = b; pEnviar.disabled = b; pEtiqueta.textContent = b ? 'Enviando…' : 'Enviar pregunta'; }
+    function pContar() { pContador.textContent = pTexto.value.length + ' / ' + MAX_PREGUNTA; }
+    pTexto.addEventListener('input', pContar);
+    pTexto.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); pForm.requestSubmit(); }
+    });
+
+    async function pTextoError(error) {
+      var nombre = error && error.name;
+      if (nombre === 'FunctionsHttpError' && error.context) {
+        var estadoHttp = error.context.status;
+        if (estadoHttp === 401 || estadoHttp === 403) return {sesion: true, texto: 'Tu sesión no es válida o expiró. Inicia sesión de nuevo.'};
+        if (estadoHttp === 429) return {texto: 'Hay demasiadas solicitudes. Espera un momento e inténtalo otra vez.'};
+        if (estadoHttp === 400 || estadoHttp === 413) return {texto: 'No se pudo procesar la pregunta. Revisa su texto e inténtalo de nuevo.'};
+        if (estadoHttp === 502) return {texto: 'No se pudo generar la respuesta en este momento. Inténtalo de nuevo en unos instantes.'};
+        return {texto: 'El servicio no pudo responder en este momento. Inténtalo de nuevo.'};
+      }
+      if (nombre === 'FunctionsFetchError') return {texto: 'No hay conexión con el servicio. Revisa tu Internet e inténtalo de nuevo.'};
+      return {texto: 'No se pudo obtener la respuesta. Inténtalo de nuevo.'};
+    }
+
+    async function preguntar() {
+      if (pOcupado) return;
+      var pregunta = pTexto.value.trim();
+      if (!pregunta) { pMensaje('Escribe una pregunta antes de enviarla.', true); pTexto.focus(); return; }
+      if (pregunta.length > MAX_PREGUNTA) { pMensaje('La pregunta es demasiado larga. El máximo es ' + MAX_PREGUNTA + ' caracteres.', true); return; }
+      if (!cliente) { pMensaje('No se pudo cargar la conexión. Comprueba tu conexión a Internet.', true); return; }
+      var mia = ++pSolicitud;
+      pBloquear(true);
+      pMensaje('Consultando…', false);
+      try {
+        var s = await cliente.auth.getSession(); // renueva el token si hace falta
+        if (mia !== pSolicitud) return;
+        if (s.error || !s.data.session) {
+          pMensaje('Para hacer preguntas necesitas iniciar sesión.', true);
+          return;
+        }
+        var r = await cliente.functions.invoke('gemini-chat', { body: { pregunta: pregunta } });
+        if (mia !== pSolicitud || !pActiva()) return; // el usuario salió de la pantalla
+        if (r.error) {
+          var info = await pTextoError(r.error);
+          if (mia !== pSolicitud || !pActiva()) return;
+          pMensaje(info.texto, true);
+          return;
+        }
+        var texto = r.data && typeof r.data.respuesta === 'string' ? r.data.respuesta.trim() : '';
+        if (!texto) { pMensaje('El servicio respondió sin contenido. Inténtalo de nuevo.', true); return; }
+        var par = document.createElement('div'); par.className = 'par';
+        var q = document.createElement('p'); q.className = 'q'; q.textContent = pregunta;
+        var a = document.createElement('p'); a.className = 'a'; a.textContent = texto;
+        par.appendChild(q); par.appendChild(a);
+        pConv.insertBefore(par, pConv.firstChild);
+        pTexto.value = ''; pContar();
+        pMensaje('', false);
+      } catch (err) {
+        if (mia === pSolicitud && pActiva()) pMensaje('No se pudo obtener la respuesta. Inténtalo de nuevo.', true);
+      } finally {
+        if (mia === pSolicitud) pBloquear(false);
+      }
+    }
+    pForm.addEventListener('submit', function (e) { e.preventDefault(); preguntar(); });
+    window.addEventListener('hashchange', function () {
+      if (!pActiva() && pOcupado) { pSolicitud++; pBloquear(false); pMensaje('', false); }
+    });
+    pContar();
 
     window.addEventListener('hashchange', mostrar);
     mostrar();
