@@ -101,36 +101,26 @@
   .tarjeta-prov p { margin: 14px auto 0; max-width: 34ch; color: var(--texto-suave); line-height: 1.45; }
 
 
-  /* Portada fija; las secciones internas conservan su desplazamiento normal. */
-  html:has(#inicio.activa), body:has(#inicio.activa) { height: 100%; overflow: hidden; overscroll-behavior: none; }
-  body:has(#inicio.activa) .pagina { height: 100dvh; overflow: hidden; padding-top: max(8px, env(safe-area-inset-top, 0px)); padding-bottom: max(8px, env(safe-area-inset-bottom, 0px)); }
-  #inicio.activa { height: 100%; display: flex; flex-direction: column; min-height: 0; }
-  #inicio .marca { flex: 0 0 auto; padding-bottom: clamp(4px, 2vh, 22px); }
-  #inicio .accesos { flex: 1; min-height: 0; grid-template-rows: repeat(2, minmax(0, 1fr)); }
-  #inicio .acceso { min-height: 0; padding: clamp(5px, 1.5vh, 16px) 12px; }
-  #inicio .acceso svg.icono { height: clamp(35px, 10vh, 100px); flex-shrink: 1; min-height: 0; }
-  #inicio .acceso p { margin-bottom: clamp(3px, 1vh, 14px); }
-  #inicio .boton { min-height: clamp(34px, 5.2vh, 46px); flex-shrink: 0; }
-  @media (max-height: 680px) {
-    #inicio .marca svg { width: 52px; }
-    #inicio .marca h1 { font-size: 1.9rem; }
-    #inicio .marca p { margin-top: 3px; font-size: .85rem; }
-    #inicio .accesos { gap: 8px; }
-    #inicio .acceso h2 { font-size: .95rem; }
-    #inicio .acceso p { font-size: .72rem; line-height: 1.2; }
-  }
-
-  .enlace-acceso { display: block; flex: 0 0 auto; text-align: center; padding: 8px 0 0; font-weight: 700; color: var(--azul); }
-  /* Formulario de acceso: presentación, sin autenticación todavía. */
-  .acceso-formulario { max-width: 420px; margin: 18px auto 0; padding: 26px 20px; background: var(--azul-pastel); border-radius: 26px; box-shadow: 0 8px 22px rgba(90,110,170,.10); }
-  .acceso-formulario h2 { margin: 0 0 10px; font-size: 1.6rem; text-align: center; }
-  .acceso-formulario p { color: var(--texto-suave); line-height: 1.45; text-align: center; }
-  .acceso-formulario label { display: block; margin: 16px 0 6px; font-weight: 700; }
-  .acceso-formulario input { display: block; width: 100%; min-height: 46px; border: 1px solid #a9b9d6; border-radius: 12px; padding: 10px 12px; font: inherit; background: #fff; color: var(--texto); }
-  .acceso-formulario input:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
-  .acceso-formulario .boton { margin-top: 16px; cursor: pointer; }
-  .acceso-formulario .boton.secundario { background: #fff; color: var(--texto); border: 2px solid var(--azul); }
-  .acceso-formulario .aviso-acceso { font-size: .88rem; }
+  /* Portada fija; las pantallas internas mantienen desplazamiento. */
+  html:has(#inicio.activa), body:has(#inicio.activa) {height:100%;overflow:hidden;overscroll-behavior:none}
+  body:has(#inicio.activa) .pagina {height:100dvh;overflow:hidden;padding-top:max(8px,env(safe-area-inset-top,0px));padding-bottom:max(8px,env(safe-area-inset-bottom,0px))}
+  #inicio.activa {height:100%;display:flex;flex-direction:column;min-height:0}
+  #inicio .marca {flex:0 0 auto;padding-bottom:clamp(4px,2vh,22px)}
+  #inicio .accesos {flex:1;min-height:0;grid-template-rows:repeat(2,minmax(0,1fr))}
+  #inicio .acceso {min-height:0;padding:clamp(5px,1.5vh,16px) 12px}
+  #inicio .acceso svg.icono {height:clamp(35px,10vh,100px);flex-shrink:1;min-height:0}
+  #inicio .acceso p {margin-bottom:clamp(3px,1vh,14px)}
+  #inicio .boton {min-height:clamp(34px,5.2vh,46px);flex-shrink:0}
+  @media(max-height:680px){#inicio .marca svg{width:52px}#inicio .marca h1{font-size:1.9rem}#inicio .marca p{margin-top:3px;font-size:.85rem}#inicio .accesos{gap:8px}#inicio .acceso h2{font-size:.95rem}#inicio .acceso p{font-size:.72rem;line-height:1.2}}
+  .enlace-acceso{display:block;flex:0 0 auto;text-align:center;padding:8px 0 0;font-weight:700;color:var(--azul)}
+  .acceso-formulario{max-width:420px;margin:18px auto 0;padding:26px 20px;background:var(--azul-pastel);border-radius:26px;box-shadow:0 8px 22px rgba(90,110,170,.10)}
+  .acceso-formulario h2{margin:0 0 10px;font-size:1.6rem;text-align:center}
+  .acceso-formulario p{color:var(--texto-suave);line-height:1.45;text-align:center}
+  .acceso-formulario label{display:block;margin:16px 0 6px;font-weight:700}
+  .acceso-formulario input{display:block;width:100%;min-height:46px;border:1px solid #a9b9d6;border-radius:12px;padding:10px 12px;font:inherit;background:#fff;color:var(--texto)}
+  .acceso-formulario .boton{margin-top:16px;cursor:pointer}
+  .acceso-formulario .boton.secundario{background:#fff;color:var(--texto);border:2px solid var(--azul)}
+  .acceso-formulario .aviso-acceso{font-size:.88rem}
 
   @media (prefers-reduced-motion: reduce) {
     .boton { transition: none; }
@@ -243,24 +233,6 @@
     <a class="enlace-acceso" href="#acceso">Iniciar sesión / Crear cuenta</a>
   </section>
 
-  <!-- ============ ACCESO (SIN CONEXIÓN A SUPABASE) ============ -->
-  <section class="pantalla provisional" id="acceso" aria-labelledby="t-acceso">
-    <a class="volver" href="#inicio"><svg><use href="#i-atras"/></svg>Inicio</a>
-    <div class="acceso-formulario">
-      <h2 id="t-acceso" tabindex="-1">Acceso a Estudia+</h2>
-      <p>Ingresa tu correo y contraseña.</p>
-      <form id="formulario-acceso">
-        <label for="correo-acceso">Correo electrónico</label>
-        <input id="correo-acceso" type="email" autocomplete="email" required>
-        <label for="clave-acceso">Contraseña</label>
-        <input id="clave-acceso" type="password" autocomplete="current-password" minlength="6" required>
-        <button class="boton b-azul" type="submit">Iniciar sesión</button>
-        <button class="boton secundario" type="button" id="crear-cuenta">Crear cuenta</button>
-      </form>
-      <p class="aviso-acceso" id="mensaje-acceso" role="status" aria-live="polite">Formulario de demostración. El registro y el inicio de sesión estarán disponibles al conectar Supabase.</p>
-    </div>
-  </section>
-
   <!-- ============ PANTALLAS PROVISIONALES ============ -->
   <section class="pantalla provisional" id="subir" aria-labelledby="t-subir">
     <a class="volver" href="#inicio"><svg><use href="#i-atras"/></svg>Inicio</a>
@@ -302,8 +274,27 @@
     </div>
   </section>
 
+  <section class="pantalla provisional" id="acceso" aria-labelledby="t-acceso">
+    <a class="volver" href="#inicio"><svg><use href="#i-atras"/></svg>Inicio</a>
+    <div class="acceso-formulario">
+      <h2 id="t-acceso" tabindex="-1">Acceso a Estudia+</h2>
+      <p id="usuario-actual" hidden></p>
+      <button class="boton secundario" type="button" id="cerrar-sesion" hidden>Cerrar sesión</button>
+      <form id="formulario-acceso">
+        <label for="correo-acceso">Correo electrónico</label>
+        <input id="correo-acceso" type="email" autocomplete="email" required>
+        <label for="clave-acceso">Contraseña</label>
+        <input id="clave-acceso" type="password" autocomplete="current-password" minlength="6" required>
+        <button class="boton b-azul" type="submit" id="iniciar-sesion">Iniciar sesión</button>
+        <button class="boton secundario" type="button" id="crear-cuenta">Crear cuenta</button>
+      </form>
+      <p class="aviso-acceso" id="mensaje-acceso" role="status" aria-live="polite">Ingresa tu correo y contraseña para continuar.</p>
+    </div>
+  </section>
+
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
   // Navegación entre secciones mediante #hash (compatible con GitHub Pages)
   (function () {
@@ -333,15 +324,61 @@
       primera = false;
     }
 
-    document.getElementById('formulario-acceso').addEventListener('submit', function (evento) {
-      evento.preventDefault();
-      document.getElementById('mensaje-acceso').textContent = 'El inicio de sesión todavía no está conectado a Supabase.';
-      document.getElementById('clave-acceso').value = '';
+
+    // La clave publicable es apta para el navegador; nunca utilizar una clave secreta.
+    var cliente = window.supabase ? window.supabase.createClient(
+      'https://wqwnoacxqijvublrttcm.supabase.co',
+      'sb_publishable_AHJ2ap71Yi_NQOrQvxD0zQ_MsD5pL9I'
+    ) : null;
+    var formulario = document.getElementById('formulario-acceso');
+    var mensaje = document.getElementById('mensaje-acceso');
+    var cerrar = document.getElementById('cerrar-sesion');
+    var usuario = document.getElementById('usuario-actual');
+    var iniciar = document.getElementById('iniciar-sesion');
+    var crear = document.getElementById('crear-cuenta');
+    function aviso(t) { mensaje.textContent = t; }
+    function estado(sesion) {
+      var correo = sesion && sesion.user && sesion.user.email;
+      formulario.hidden = !!correo;
+      cerrar.hidden = !correo;
+      usuario.hidden = !correo;
+      usuario.textContent = correo ? 'Sesión iniciada: ' + correo : '';
+      if (correo) aviso('Sesión iniciada correctamente.');
+    }
+    async function autenticar(registro) {
+      if (!formulario.reportValidity()) return;
+      if (!cliente) { aviso('No se pudo cargar la conexión. Comprueba tu conexión a Internet.'); return; }
+      iniciar.disabled = crear.disabled = true;
+      aviso(registro ? 'Creando cuenta…' : 'Iniciando sesión…');
+      var email = document.getElementById('correo-acceso').value.trim();
+      var password = document.getElementById('clave-acceso').value;
+      try {
+        var resultado = registro
+          ? await cliente.auth.signUp({email:email,password:password,options:{emailRedirectTo:location.origin+location.pathname+'#acceso'}})
+          : await cliente.auth.signInWithPassword({email:email,password:password});
+        if (resultado.error) throw resultado.error;
+        if (registro && !resultado.data.session) aviso('Revisa tu correo para confirmar la cuenta antes de iniciar sesión.');
+        else estado(resultado.data.session);
+      } catch (error) {
+        aviso(error.message || 'No se pudo completar la operación.');
+      } finally {
+        document.getElementById('clave-acceso').value = '';
+        iniciar.disabled = crear.disabled = false;
+      }
+    }
+    formulario.addEventListener('submit',function(e){e.preventDefault();autenticar(false)});
+    crear.addEventListener('click',function(){autenticar(true)});
+    cerrar.addEventListener('click',async function(){
+      if (!cliente) return;
+      var r = await cliente.auth.signOut();
+      if (r.error) aviso(r.error.message);
+      else {estado(null);aviso('Sesión cerrada.');}
     });
-    document.getElementById('crear-cuenta').addEventListener('click', function () {
-      document.getElementById('mensaje-acceso').textContent = 'La creación de cuentas estará disponible al conectar Supabase.';
-      document.getElementById('clave-acceso').value = '';
-    });
+    if (cliente) {
+      cliente.auth.getSession().then(function(r){if (!r.error) estado(r.data.session)});
+      cliente.auth.onAuthStateChange(function(_evento,sesion){estado(sesion)});
+    } else aviso('No se pudo cargar Supabase. Comprueba tu conexión a Internet.');
+
     window.addEventListener('hashchange', mostrar);
     mostrar();
   })();
