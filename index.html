@@ -621,15 +621,34 @@
     var aEstado = document.getElementById('estado-subida'), aIr = document.getElementById('ir-biblioteca');
     var bEstado = document.getElementById('estado-biblioteca'), bLista = document.getElementById('lista-archivos');
     var aOcupado = false, bOcupado = false, eOcupado = false, rutasActivas = [];
+    // Listado completo de nombres de la carpeta, o null si hubo error o el listado pudo quedar incompleto.
+    async function listarNombres(carpeta) {
+      var r = await cliente.storage.from(BUCKET).list(carpeta, { limit: 1000 });
+      if (r.error || !Array.isArray(r.data) || r.data.length >= 1000) return null;
+      return r.data.map(function (o) { return o.name; });
+    }
+    // Calibración: un listado sin el objeto solo prueba su ausencia si se demuestra que este usuario puede subir, ver y borrar en su carpeta.
+    // Se sube una sonda mínima, se comprueba que el listado la ve, se elimina y se confirma que desapareció. Cualquier fallo => false.
+    async function calibrarCarpeta(carpeta) {
+      var nombre = 'sonda-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10) + '.pdf', ruta = carpeta + '/' + nombre;
+      var up = await cliente.storage.from(BUCKET).upload(ruta, new Blob(['sonda'], { type: 'application/pdf' }), { contentType: 'application/pdf', upsert: false });
+      if (up.error) return false;
+      var visto = await listarNombres(carpeta);
+      var ok = !!visto && visto.indexOf(nombre) !== -1;
+      var viejas = (visto || []).filter(function (n) { return n.indexOf('sonda-') === 0 && n !== nombre; }); // sondas propias abandonadas
+      var rm = await cliente.storage.from(BUCKET).remove([ruta].concat(viejas.map(function (n) { return carpeta + '/' + n; })));
+      if (rm.error) return false;
+      var despues = await listarNombres(carpeta);
+      return ok && !!despues && despues.indexOf(nombre) === -1;
+    }
     // existeObjeto -> 'si' | 'no' | 'error'. Un error de red/permisos o un listado incompleto NUNCA se interpreta como ausencia.
-    // "no" solo es válido si el listado está calibrado: se ve otra guía conocida, o (calibrado=true) ya se vio este objeto antes.
+    // "no" solo es válido con el listado calibrado: se ve otra guía conocida, ya se vio este objeto antes, o la sonda funcionó.
     async function existeObjeto(ruta, calibrado) {
-      var p = ruta.split('/');
-      var r = await cliente.storage.from(BUCKET).list(p[0], { limit: 1000 });
-      if (r.error || !Array.isArray(r.data) || r.data.length >= 1000) return 'error';
-      var nombres = r.data.map(function (o) { return o.name; });
+      var p = ruta.split('/'), nombres = await listarNombres(p[0]);
+      if (!nombres) return 'error';
       if (nombres.indexOf(p[1]) !== -1) return 'si';
       var vista = calibrado || rutasActivas.some(function (x) { return x !== ruta && nombres.indexOf(x.split('/')[1]) !== -1; });
+      if (!vista) vista = await calibrarCarpeta(p[0]);
       return vista ? 'no' : 'error';
     }
     // borrarObjeto -> 'borrado' | 'ausente' | 'persiste' | 'incierto' (solo borrado/ausente permiten continuar)
