@@ -160,7 +160,18 @@
   .conversacion{margin-top:12px;display:grid;gap:12px}
   .par{background:#fff;border-radius:16px;padding:12px 14px;overflow-wrap:anywhere;word-break:break-word}
   .par .q{margin:0 0 8px;font-weight:700;white-space:pre-wrap}
-  .par .a{margin:0;line-height:1.5;white-space:pre-wrap}
+  .par .a{margin:0;line-height:1.5;white-space:normal}
+  .par .a > :first-child{margin-top:0}
+  .par .a > :last-child{margin-bottom:0}
+  .par .a p{margin:.55em 0}
+  .par .a h1,.par .a h2,.par .a h3,.par .a h4{font-size:1.08em;line-height:1.35;margin:1em 0 .4em}
+  .par .a ul,.par .a ol{padding-left:1.5em;margin:.6em 0}
+  .par .a li{margin:.3em 0}
+  .par .a pre{overflow-x:auto;padding:10px;border-radius:10px;background:#f2f5fb}
+  .par .a code{overflow-wrap:anywhere}
+  .par .a .katex-display{overflow-x:auto;overflow-y:hidden;padding:4px 0}
+  .par .a table{display:block;max-width:100%;overflow-x:auto;border-collapse:collapse}
+  .par .a th,.par .a td{border:1px solid #ccd5e6;padding:6px 8px}
   .par .a.pensando{color:var(--texto-suave);font-style:italic}
   textarea:focus-visible{outline:3px solid var(--texto);outline-offset:2px}
 </style>
@@ -367,6 +378,10 @@
 
 </main>
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
   // Navegación entre secciones mediante #hash (compatible con GitHub Pages)
@@ -488,6 +503,32 @@
       return {texto: 'No se pudo obtener la respuesta. Inténtalo de nuevo.'};
     }
 
+    // Renderizar respuestas Markdown y matemáticas sin permitir HTML no confiable.
+    // Si una biblioteca no carga, conservar el texto original sin interpretar HTML.
+    function pFormatearRespuesta(elemento, texto) {
+      if (!window.marked || !window.DOMPurify || !window.katex) {
+        elemento.textContent = texto;
+        elemento.style.whiteSpace = 'pre-wrap';
+        return;
+      }
+      try {
+        var formulas = [];
+        var preparado = texto.replace(/\$\$([\s\S]+?)\$\$|\\\[([\s\S]+?)\\\]|\\\(([\s\S]+?)\\\)|(?<!\$)\$(?!\$)([^\n$]+?)\$(?!\$)/g, function (coincidencia, bloque1, bloque2, linea1, linea2) {
+          var formula = bloque1 || bloque2 || linea1 || linea2;
+          var bloque = bloque1 !== undefined || bloque2 !== undefined;
+          var marcador = 'ESTUDIAMATHPLACEHOLDER' + formulas.length + 'END';
+          formulas.push({ marcador: marcador, html: window.katex.renderToString(formula, { displayMode: bloque, throwOnError: false, trust: false, strict: 'ignore' }) });
+          return bloque ? '\n\n' + marcador + '\n\n' : marcador;
+        });
+        var html = window.marked.parse(preparado, { gfm: true, breaks: true });
+        formulas.forEach(function (f) { html = html.replace(f.marcador, f.html); });
+        elemento.innerHTML = window.DOMPurify.sanitize(html);
+      } catch (_error) {
+        elemento.textContent = texto;
+        elemento.style.whiteSpace = 'pre-wrap';
+      }
+    }
+
     async function preguntar() {
       if (pOcupado) return;
       var pregunta = pTexto.value.trim();
@@ -516,7 +557,7 @@
         if (!texto) { pMensaje('El servicio respondió sin contenido. Inténtalo de nuevo.', true); return; }
         var par = document.createElement('div'); par.className = 'par';
         var q = document.createElement('p'); q.className = 'q'; q.textContent = pregunta;
-        var a = document.createElement('p'); a.className = 'a'; a.textContent = texto;
+        var a = document.createElement('div'); a.className = 'a'; pFormatearRespuesta(a, texto);
         par.appendChild(q); par.appendChild(a);
         pConv.insertBefore(par, pConv.firstChild);
         pTexto.value = ''; pContar();
