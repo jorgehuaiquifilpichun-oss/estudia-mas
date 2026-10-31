@@ -620,7 +620,28 @@
     var aBoton = document.getElementById('boton-subir'), aTexto = document.getElementById('texto-subir');
     var aEstado = document.getElementById('estado-subida'), aIr = document.getElementById('ir-biblioteca');
     var bEstado = document.getElementById('estado-biblioteca'), bLista = document.getElementById('lista-archivos');
-    var aOcupado = false, bOcupado = false;
+    var aOcupado = false, bOcupado = false, eOcupado = false, rutasActivas = [];
+    // existeObjeto -> 'si' | 'no' | 'error'. Un error de red/permisos o un listado incompleto NUNCA se interpreta como ausencia.
+    // "no" solo es válido si el listado está calibrado: se ve otra guía conocida, o (calibrado=true) ya se vio este objeto antes.
+    async function existeObjeto(ruta, calibrado) {
+      var p = ruta.split('/');
+      var r = await cliente.storage.from(BUCKET).list(p[0], { limit: 1000 });
+      if (r.error || !Array.isArray(r.data) || r.data.length >= 1000) return 'error';
+      var nombres = r.data.map(function (o) { return o.name; });
+      if (nombres.indexOf(p[1]) !== -1) return 'si';
+      var vista = calibrado || rutasActivas.some(function (x) { return x !== ruta && nombres.indexOf(x.split('/')[1]) !== -1; });
+      return vista ? 'no' : 'error';
+    }
+    // borrarObjeto -> 'borrado' | 'ausente' | 'persiste' | 'incierto' (solo borrado/ausente permiten continuar)
+    async function borrarObjeto(ruta) {
+      var antes = await existeObjeto(ruta, false);
+      if (antes === 'error') return 'incierto';
+      if (antes === 'no') return 'ausente';
+      var r = await cliente.storage.from(BUCKET).remove([ruta]);
+      if (r.error) return 'incierto';
+      var despues = await existeObjeto(ruta, true);
+      return despues === 'no' ? 'borrado' : (despues === 'si' ? 'persiste' : 'incierto');
+    }
     function msg(el, t, tipo) { el.textContent = t; el.className = 'estado-arch' + (tipo ? ' ' + tipo : ''); }
     function tam(b) { return b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB'; }
     function errSesion(e) { var t = ((e && (e.message || '')) + ' ' + (e && e.status || '')).toLowerCase(); return /jwt|expired|401|403|not authenticated/.test(t); }
@@ -656,14 +677,24 @@
         msg(aEstado, 'Registrando archivo…', '');
         var ins = await cliente.from('archivos_usuario').insert({ nombre_original: f.name.slice(0, 200), ruta: ruta, tipo: ext, tamano: f.size });
         if (ins.error) {
-          await cliente.storage.from(BUCKET).remove([ruta]); // evita archivos físicos huérfanos
-          throw ins.error;
+          var ex = await cliente.from('archivos_usuario').select('id').eq('ruta', ruta).maybeSingle();
+          if (ex.error) throw new Error('registro_incierto'); // no se puede saber si se guardó: no tocar el archivo
+          if (!ex.data) {
+            var lim = await borrarObjeto(ruta); // evita archivos físicos huérfanos, con comprobación real
+            if (lim !== 'borrado' && lim !== 'ausente') throw new Error('limpieza_pendiente');
+            throw ins.error;
+          } // si la fila existe, la respuesta se perdió: se trata como subida correcta
         }
         aInput.value = '';
         msg(aEstado, 'Archivo subido correctamente.', 'ok');
         aIr.hidden = false;
       } catch (err) {
-        msg(aEstado, errSesion(err) ? 'Tu sesión expiró. Inicia sesión de nuevo.' : 'No se pudo subir el archivo. Revisa tu conexión e inténtalo de nuevo.', 'error');
+        console.warn('estudia_subida', (err && (err.code || err.status || err.name || err.message)) || 'desconocido');
+        var m = err && err.message;
+        msg(aEstado, errSesion(err) ? 'Tu sesión expiró. Inicia sesión de nuevo.'
+          : m === 'limpieza_pendiente' ? 'El archivo se subió pero no pudo registrarse y no se pudo limpiar. Inténtalo de nuevo.'
+          : m === 'registro_incierto' ? 'No se pudo confirmar el registro del archivo. Revisa tu biblioteca antes de volver a subirlo.'
+          : 'No se pudo subir el archivo. Revisa tu conexión e inténtalo de nuevo.', 'error');
       } finally {
         aOcupado = false; aBoton.disabled = false; aTexto.textContent = 'Subir archivo';
       }
@@ -677,7 +708,9 @@
         var r = await cliente.from('archivos_usuario').select('id,nombre_original,ruta,tipo,tamano,creado_en,estado').order('creado_en', { ascending: false });
         if (r.error) throw r.error;
         bLista.innerHTML = '';
-        msg(bEstado, r.data.length ? '' : 'Aún no has subido guías.', '');
+        rutasActivas = r.data.filter(function (x) { return x.estado === 'activo'; }).map(function (x) { return x.ruta; });
+        var pend = r.data.some(function (x) { return x.estado === 'eliminando'; });
+        msg(bEstado, pend ? 'Hay guías con eliminación pendiente. Pulsa «Reintentar eliminación».' : (r.data.length ? '' : 'Aún no has subido guías.'), '');
         r.data.forEach(function (a) {
           var li = document.createElement('li'), n = document.createElement('p'), m = document.createElement('p'), acc = document.createElement('div');
           n.className = 'nom'; n.textContent = a.nombre_original;
@@ -711,20 +744,25 @@
     }
     // Eliminación coherente: 1) marcar «eliminando» 2) borrar objeto con la API de Storage 3) borrar la fila (cascada a sesiones, materiales y resultados)
     async function eliminarGuia(a, boton) {
-      if (boton.disabled) return;
-      if (!window.confirm('¿Eliminar «' + a.nombre_original + '»? Se borrarán el archivo, sus sesiones, ejercicios y resultados. No se puede deshacer.')) return;
-      boton.disabled = true; msg(bEstado, 'Eliminando…', '');
+      if (boton.disabled || eOcupado) return;
+      if (a.estado === 'activo' && !window.confirm('¿Eliminar «' + a.nombre_original + '»? Se borrarán el archivo, sus sesiones, ejercicios y resultados. No se puede deshacer.')) return;
+      eOcupado = true; boton.disabled = true; msg(bEstado, 'Eliminando…', '');
       try {
-        var p1 = await cliente.from('archivos_usuario').update({ estado: 'eliminando' }).eq('id', a.id);
+        var p1 = await cliente.from('archivos_usuario').update({ estado: 'eliminando' }).eq('id', a.id).select('id');
         if (p1.error) throw p1.error;
-        var p2 = await cliente.storage.from(BUCKET).remove([a.ruta]);
-        if (p2.error) throw p2.error;
-        var p3 = await cliente.from('archivos_usuario').delete().eq('id', a.id);
+        if (!p1.data || p1.data.length !== 1) throw new Error('borrado_no_confirmado');
+        var est = await borrarObjeto(a.ruta);
+        if (est !== 'borrado' && est !== 'ausente') throw new Error('borrado_no_confirmado');
+        var p3 = await cliente.from('archivos_usuario').delete().eq('id', a.id).select('id');
         if (p3.error) throw p3.error;
+        if (!p3.data || p3.data.length !== 1) throw new Error('borrado_no_confirmado');
         msg(bEstado, 'Guía eliminada.', 'ok');
       } catch (err) {
-        msg(bEstado, errSesion(err) ? 'Tu sesión expiró. Inicia sesión de nuevo.' : 'No se pudo completar la eliminación. Pulsa «Reintentar eliminación».', 'error');
-      }
+        console.warn('estudia_eliminar', (err && (err.code || err.status || err.name || err.message)) || 'desconocido');
+        msg(bEstado, errSesion(err) ? 'Tu sesión expiró. Inicia sesión de nuevo.'
+          : (err && err.message === 'borrado_no_confirmado') ? 'No se pudo confirmar el borrado del archivo. Pulsa «Reintentar eliminación».'
+          : 'No se pudo completar la eliminación. Pulsa «Reintentar eliminación».', 'error');
+      } finally { eOcupado = false; }
       await cargarArchivos();
     }
     window.addEventListener('hashchange', function () { if (location.hash === '#biblioteca') cargarArchivos(); });
