@@ -174,6 +174,25 @@
   .par .a th,.par .a td{border:1px solid #ccd5e6;padding:6px 8px}
   .par .a.pensando{color:var(--texto-suave);font-style:italic}
   textarea:focus-visible{outline:3px solid var(--texto);outline-offset:2px}
+  .archivos{margin-top:18px;border-radius:26px;padding:22px 16px;text-align:center;box-shadow:0 8px 22px rgba(90,110,170,.10)}
+  .archivos>svg{width:110px;height:96px;margin-bottom:8px;filter:drop-shadow(0 6px 8px rgba(80,100,180,.18))}
+  .archivos h2{margin:0 0 8px;font-size:1.6rem;font-weight:800;letter-spacing:-0.02em}
+  .archivos>p{margin:0 0 12px;color:var(--texto-suave);line-height:1.4}
+  .archivos label{display:block;margin:0 0 6px;font-weight:700;text-align:left}
+  .archivos input[type=file]{display:block;width:100%;padding:10px;border:1px solid #a9b9d6;border-radius:12px;background:#fff;font:inherit}
+  .archivos .boton{margin-top:12px;cursor:pointer}
+  .archivos .boton:disabled{opacity:.6;cursor:not-allowed}
+  .archivos .estado-arch{min-height:1.4em;margin:10px 0 0;font-size:.92rem;color:var(--texto-suave)}
+  .archivos .estado-arch.error{color:#a12b2b;font-weight:600}
+  .archivos .estado-arch.ok{color:#1f7a5a;font-weight:600}
+  .lista-arch{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:10px;text-align:left}
+  .lista-arch li{background:#fff;border-radius:16px;padding:12px 14px;overflow-wrap:anywhere}
+  .lista-arch .nom{font-weight:700;margin:0}
+  .lista-arch .meta{margin:2px 0 8px;font-size:.82rem;color:var(--texto-suave)}
+  .lista-arch .acc{display:flex;gap:8px}
+  .mini{flex:1;min-height:44px;border-radius:12px;border:2px solid var(--azul);background:#fff;color:var(--texto);font:700 .9rem/1 var(--fuente);cursor:pointer}
+  .mini.peligro{border-color:#a12b2b;color:#a12b2b}
+  .mini:disabled{opacity:.5;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -296,11 +315,17 @@
   <!-- ============ PANTALLAS PROVISIONALES ============ -->
   <section class="pantalla provisional" id="subir" aria-labelledby="t-subir">
     <a class="volver" href="#inicio"><svg><use href="#i-atras"/></svg>Inicio</a>
-    <div class="tarjeta-prov" style="background:var(--azul-pastel)">
+    <div class="archivos" style="background:var(--azul-pastel)">
       <svg viewBox="0 0 270 240" aria-hidden="true"><use href="#ic-subir"/></svg>
       <h2 id="t-subir" tabindex="-1">Subir archivo</h2>
-      <span class="etiqueta">Pantalla provisional</span>
-      <p>Esta función todavía no está disponible. Se incorporará en una etapa posterior.</p>
+      <p>PDF, Word (DOC, DOCX), JPG o PNG. Máximo 50 MB.</p>
+      <form id="form-subir" novalidate>
+        <label for="archivo-subir">Elige un archivo</label>
+        <input id="archivo-subir" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+        <button class="boton b-azul" type="submit" id="boton-subir"><svg><use href="#i-subir"/></svg><span id="texto-subir">Subir archivo</span></button>
+      </form>
+      <p class="estado-arch" id="estado-subida" role="status" aria-live="polite"></p>
+      <a class="volver" id="ir-biblioteca" href="#biblioteca" hidden>Ver mis guías</a>
     </div>
   </section>
 
@@ -340,11 +365,12 @@
 
   <section class="pantalla provisional" id="biblioteca" aria-labelledby="t-biblioteca">
     <a class="volver" href="#inicio"><svg><use href="#i-atras"/></svg>Inicio</a>
-    <div class="tarjeta-prov" style="background:var(--lila-azulado-pastel)">
+    <div class="archivos" style="background:var(--lila-azulado-pastel)">
       <svg viewBox="0 0 280 220" aria-hidden="true"><use href="#ic-biblio"/></svg>
       <h2 id="t-biblioteca" tabindex="-1">Biblioteca de libros</h2>
-      <span class="etiqueta">Pantalla provisional</span>
-      <p>Esta función todavía no está disponible. Se incorporará en una etapa posterior.</p>
+      <p>Tus guías subidas. Solo tú puedes verlas.</p>
+      <p class="estado-arch" id="estado-biblioteca" role="status" aria-live="polite"></p>
+      <ul class="lista-arch" id="lista-archivos"></ul>
     </div>
   </section>
 
@@ -371,6 +397,7 @@
         <input id="clave-acceso" type="password" autocomplete="current-password" minlength="6" required>
         <button class="boton b-azul" type="submit" id="iniciar-sesion">Iniciar sesión</button>
         <button class="boton secundario" type="button" id="crear-cuenta">Crear cuenta</button>
+        <button class="boton secundario" type="button" id="acceso-google">Continuar con Google</button>
       </form>
       <p class="aviso-acceso" id="mensaje-acceso" role="status" aria-live="polite">Ingresa tu correo y contraseña para continuar.</p>
     </div>
@@ -426,7 +453,10 @@
     var iniciar = document.getElementById('iniciar-sesion');
     var crear = document.getElementById('crear-cuenta');
     function aviso(t) { mensaje.textContent = t; }
+    var sesionActual = null;
     function estado(sesion) {
+      sesionActual = sesion || null;
+      archivosCambioSesion();
       var correo = sesion && sesion.user && sesion.user.email;
       formulario.hidden = !!correo;
       cerrar.hidden = !correo;
@@ -513,7 +543,7 @@
       }
       try {
         var formulas = [];
-        var preparado = texto.replace(/\$\$([\s\S]+?)\$\$|\\\[([\s\S]+?)\\\]|\\\(([\s\S]+?)\\\)|(?<!\$)\$(?!\$)([^\n$]+?)\$(?!\$)/g, function (coincidencia, bloque1, bloque2, linea1, linea2) {
+        var preparado = texto.replace(/\$\$([\s\S]+?)\$\$|\\\[([\s\S]+?)\\\]|\\\(([\s\S]+?)\\\)|\$(?!\$)([^\n$]+?)\$(?!\$)/g, function (coincidencia, bloque1, bloque2, linea1, linea2) {
           var formula = bloque1 || bloque2 || linea1 || linea2;
           var bloque = bloque1 !== undefined || bloque2 !== undefined;
           var marcador = 'ESTUDIAMATHPLACEHOLDER' + formulas.length + 'END';
@@ -521,7 +551,7 @@
           return bloque ? '\n\n' + marcador + '\n\n' : marcador;
         });
         var html = window.marked.parse(preparado, { gfm: true, breaks: true });
-        formulas.forEach(function (f) { html = html.replace(f.marcador, f.html); });
+        formulas.forEach(function (f) { html = html.replace(f.marcador, function () { return f.html; }); });
         elemento.innerHTML = window.DOMPurify.sanitize(html);
       } catch (_error) {
         elemento.textContent = texto;
@@ -573,6 +603,132 @@
       if (!pActiva() && pOcupado) { pSolicitud++; pBloquear(false); pMensaje('', false); }
     });
     pContar();
+
+
+    // ===== Acceso con Google (Supabase vincula por correo verificado; sin vinculación manual) =====
+    document.getElementById('acceso-google').addEventListener('click', async function () {
+      if (!cliente) { aviso('No se pudo cargar la conexión. Comprueba tu conexión a Internet.'); return; }
+      aviso('Redirigiendo a Google…');
+      var r = await cliente.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + location.pathname } });
+      if (r.error) aviso(r.error.message || 'No se pudo iniciar con Google.');
+    });
+
+    // ===== Archivos: Storage "estudia-archivos" + tabla archivos_usuario =====
+    var BUCKET = 'estudia-archivos', MAX_BYTES = 50 * 1024 * 1024;
+    var MIME = { pdf: 'application/pdf', doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png' };
+    var aForm = document.getElementById('form-subir'), aInput = document.getElementById('archivo-subir');
+    var aBoton = document.getElementById('boton-subir'), aTexto = document.getElementById('texto-subir');
+    var aEstado = document.getElementById('estado-subida'), aIr = document.getElementById('ir-biblioteca');
+    var bEstado = document.getElementById('estado-biblioteca'), bLista = document.getElementById('lista-archivos');
+    var aOcupado = false, bOcupado = false;
+    function msg(el, t, tipo) { el.textContent = t; el.className = 'estado-arch' + (tipo ? ' ' + tipo : ''); }
+    function tam(b) { return b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB'; }
+    function errSesion(e) { var t = ((e && (e.message || '')) + ' ' + (e && e.status || '')).toLowerCase(); return /jwt|expired|401|403|not authenticated/.test(t); }
+    async function usuarioValido() {
+      if (!cliente) return null;
+      var r = await cliente.auth.getSession();
+      return (!r.error && r.data.session) ? r.data.session.user : null;
+    }
+    function archivosCambioSesion() {
+      if (!sesionActual) { bLista.innerHTML = ''; msg(bEstado, 'Inicia sesión para ver tus guías.', ''); msg(aEstado, 'Inicia sesión para subir archivos.', ''); }
+      else { msg(aEstado, '', ''); if (location.hash === '#biblioteca') cargarArchivos(); }
+    }
+    aForm.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      if (aOcupado) return;
+      aIr.hidden = true;
+      var f = aInput.files && aInput.files[0];
+      if (!f) { msg(aEstado, 'Elige un archivo antes de subirlo.', 'error'); return; }
+      var ext = (f.name.split('.').pop() || '').toLowerCase();
+      if (!MIME[ext]) { msg(aEstado, 'Formato no permitido. Usa PDF, DOC, DOCX, JPG o PNG.', 'error'); return; }
+      if (f.size === 0) { msg(aEstado, 'El archivo está vacío.', 'error'); return; }
+      if (f.size > MAX_BYTES) { msg(aEstado, 'El archivo supera 50 MB.', 'error'); return; }
+      aOcupado = true; aBoton.disabled = true; aTexto.textContent = 'Subiendo…';
+      var ruta = null;
+      try {
+        msg(aEstado, 'Comprobando sesión…', '');
+        var u = await usuarioValido();
+        if (!u) { msg(aEstado, 'Necesitas iniciar sesión para subir archivos.', 'error'); return; }
+        ruta = u.id + '/' + Date.now() + '-' + Math.random().toString(36).slice(2, 10) + '.' + ext;
+        msg(aEstado, 'Subiendo archivo… no cierres esta pantalla.', '');
+        var up = await cliente.storage.from(BUCKET).upload(ruta, f, { contentType: MIME[ext], upsert: false });
+        if (up.error) throw up.error;
+        msg(aEstado, 'Registrando archivo…', '');
+        var ins = await cliente.from('archivos_usuario').insert({ nombre_original: f.name.slice(0, 200), ruta: ruta, tipo: ext, tamano: f.size });
+        if (ins.error) {
+          await cliente.storage.from(BUCKET).remove([ruta]); // evita archivos físicos huérfanos
+          throw ins.error;
+        }
+        aInput.value = '';
+        msg(aEstado, 'Archivo subido correctamente.', 'ok');
+        aIr.hidden = false;
+      } catch (err) {
+        msg(aEstado, errSesion(err) ? 'Tu sesión expiró. Inicia sesión de nuevo.' : 'No se pudo subir el archivo. Revisa tu conexión e inténtalo de nuevo.', 'error');
+      } finally {
+        aOcupado = false; aBoton.disabled = false; aTexto.textContent = 'Subir archivo';
+      }
+    });
+    async function cargarArchivos() {
+      if (bOcupado) return;
+      bOcupado = true; msg(bEstado, 'Cargando…', '');
+      try {
+        var u = await usuarioValido();
+        if (!u) { bLista.innerHTML = ''; msg(bEstado, 'Inicia sesión para ver tus guías.', ''); return; }
+        var r = await cliente.from('archivos_usuario').select('id,nombre_original,ruta,tipo,tamano,creado_en,estado').order('creado_en', { ascending: false });
+        if (r.error) throw r.error;
+        bLista.innerHTML = '';
+        msg(bEstado, r.data.length ? '' : 'Aún no has subido guías.', '');
+        r.data.forEach(function (a) {
+          var li = document.createElement('li'), n = document.createElement('p'), m = document.createElement('p'), acc = document.createElement('div');
+          n.className = 'nom'; n.textContent = a.nombre_original;
+          m.className = 'meta'; m.textContent = a.tipo.toUpperCase() + ' · ' + tam(a.tamano) + ' · ' + new Date(a.creado_en).toLocaleDateString('es') + (a.estado === 'eliminando' ? ' · eliminación pendiente' : '');
+          acc.className = 'acc';
+          if (a.estado === 'activo') {
+            var ab = document.createElement('button'); ab.type = 'button'; ab.className = 'mini'; ab.textContent = 'Abrir';
+            ab.addEventListener('click', function () { abrirArchivo(a, ab); }); acc.appendChild(ab);
+          }
+          var el = document.createElement('button'); el.type = 'button'; el.className = 'mini peligro';
+          el.textContent = a.estado === 'activo' ? 'Eliminar' : 'Reintentar eliminación';
+          el.addEventListener('click', function () { eliminarGuia(a, el); }); acc.appendChild(el);
+          li.appendChild(n); li.appendChild(m); li.appendChild(acc); bLista.appendChild(li);
+        });
+      } catch (err) {
+        msg(bEstado, errSesion(err) ? 'Tu sesión expiró. Inicia sesión de nuevo.' : 'No se pudieron cargar tus guías. Inténtalo de nuevo.', 'error');
+      } finally { bOcupado = false; }
+    }
+    async function abrirArchivo(a, boton) {
+      if (boton.disabled) return;
+      boton.disabled = true;
+      var w = window.open('', '_blank');
+      try {
+        var r = await cliente.storage.from(BUCKET).createSignedUrl(a.ruta, 60);
+        if (r.error) throw r.error;
+        if (w) { w.opener = null; w.location.href = r.data.signedUrl; } else { location.href = r.data.signedUrl; }
+      } catch (err) {
+        if (w) w.close();
+        msg(bEstado, errSesion(err) ? 'Tu sesión expiró. Inicia sesión de nuevo.' : 'No se pudo abrir el archivo.', 'error');
+      } finally { boton.disabled = false; }
+    }
+    // Eliminación coherente: 1) marcar «eliminando» 2) borrar objeto con la API de Storage 3) borrar la fila (cascada a sesiones, materiales y resultados)
+    async function eliminarGuia(a, boton) {
+      if (boton.disabled) return;
+      if (!window.confirm('¿Eliminar «' + a.nombre_original + '»? Se borrarán el archivo, sus sesiones, ejercicios y resultados. No se puede deshacer.')) return;
+      boton.disabled = true; msg(bEstado, 'Eliminando…', '');
+      try {
+        var p1 = await cliente.from('archivos_usuario').update({ estado: 'eliminando' }).eq('id', a.id);
+        if (p1.error) throw p1.error;
+        var p2 = await cliente.storage.from(BUCKET).remove([a.ruta]);
+        if (p2.error) throw p2.error;
+        var p3 = await cliente.from('archivos_usuario').delete().eq('id', a.id);
+        if (p3.error) throw p3.error;
+        msg(bEstado, 'Guía eliminada.', 'ok');
+      } catch (err) {
+        msg(bEstado, errSesion(err) ? 'Tu sesión expiró. Inicia sesión de nuevo.' : 'No se pudo completar la eliminación. Pulsa «Reintentar eliminación».', 'error');
+      }
+      await cargarArchivos();
+    }
+    window.addEventListener('hashchange', function () { if (location.hash === '#biblioteca') cargarArchivos(); });
+    if (location.hash === '#biblioteca') cargarArchivos();
 
     window.addEventListener('hashchange', mostrar);
     mostrar();
