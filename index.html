@@ -369,6 +369,7 @@
       <svg viewBox="0 0 280 220" aria-hidden="true"><use href="#ic-biblio"/></svg>
       <h2 id="t-biblioteca" tabindex="-1">Biblioteca de libros</h2>
       <p>Tus guías subidas. Solo tú puedes verlas.</p>
+      <button class="boton b-lila1" type="button" id="actualizar-biblioteca">Actualizar biblioteca</button>
       <p class="estado-arch" id="estado-biblioteca" role="status" aria-live="polite"></p>
       <ul class="lista-arch" id="lista-archivos"></ul>
     </div>
@@ -620,6 +621,7 @@
     var aBoton = document.getElementById('boton-subir'), aTexto = document.getElementById('texto-subir');
     var aEstado = document.getElementById('estado-subida'), aIr = document.getElementById('ir-biblioteca');
     var bEstado = document.getElementById('estado-biblioteca'), bLista = document.getElementById('lista-archivos');
+    var bActualizar = document.getElementById('actualizar-biblioteca');
     var aOcupado = false, bOcupado = false, eOcupado = false, rutasActivas = [];
     // Listado completo de nombres de la carpeta, o null si hubo error o el listado pudo quedar incompleto.
     async function listarNombres(carpeta) {
@@ -720,7 +722,7 @@
     });
     async function cargarArchivos() {
       if (bOcupado) return;
-      bOcupado = true; msg(bEstado, 'Cargando…', '');
+      bOcupado = true; bActualizar.disabled = true; msg(bEstado, 'Cargando…', '');
       try {
         var u = await usuarioValido();
         if (!u) { bLista.innerHTML = ''; msg(bEstado, 'Inicia sesión para ver tus guías.', ''); return; }
@@ -746,8 +748,11 @@
         });
       } catch (err) {
         msg(bEstado, errSesion(err) ? 'Tu sesión expiró. Inicia sesión de nuevo.' : 'No se pudieron cargar tus guías. Inténtalo de nuevo.', 'error');
-      } finally { bOcupado = false; }
+      } finally { bOcupado = false; bActualizar.disabled = false; }
     }
+    bActualizar.addEventListener('click', function () {
+      if (!bOcupado && !eOcupado) cargarArchivos();
+    });
     async function abrirArchivo(a, boton) {
       if (boton.disabled) return;
       boton.disabled = true;
